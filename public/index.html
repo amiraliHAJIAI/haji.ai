@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1020">
+<title>HAJI AI</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ background:#0b1020;
+ color:white;
+ font-family:Tahoma,Arial,sans-serif;
+}
+
+.app{display:flex;min-height:100vh}
+
+aside{
+ width:240px;
+ background:#111a2d;
+ padding:20px;
+ border-left:1px solid #293650;
+}
+
+.logo{
+ font-size:27px;
+ font-weight:bold;
+ color:#9585ff;
+ margin-bottom:35px;
+}
+
+nav button{
+ display:block;
+ width:100%;
+ padding:14px;
+ margin:8px 0;
+ background:#1b2942;
+ color:white;
+ border:0;
+ border-radius:12px;
+ text-align:right;
+ cursor:pointer;
+ font-size:14px;
+}
+
+nav button:hover,
+nav button.active{
+ background:#6659cb;
+}
+
+main{
+ flex:1;
+ padding:25px;
+ max-width:1100px;
+ margin:auto;
+ width:100%;
+}
+
+h1{font-size:25px}
+
+.section{display:none}
+.section.active{display:block}
+
+.card{
+ background:#151f34;
+ border:1px solid #293650;
+ border-radius:18px;
+ padding:20px;
+ margin-top:20px;
+}
+
+input,textarea,select{
+ width:100%;
+ padding:13px;
+ margin:8px 0;
+ border:1px solid #35435e;
+ border-radius:10px;
+ background:#0b1426;
+ color:white;
+ font-family:Tahoma;
+}
+
+textarea{
+ min-height:110px;
+ resize:vertical;
+}
+
+.btn{
+ padding:13px 20px;
+ border:0;
+ border-radius:10px;
+ background:#7968ed;
+ color:white;
+ cursor:pointer;
+ font-weight:bold;
+}
+
+.btn:hover{background:#6252d0}
+
+.btn:disabled{
+ opacity:.5;
+ cursor:not-allowed;
+}
+
+.chatbox{
+ height:400px;
+ overflow:auto;
+ padding:12px;
+ background:#0c1425;
+ border-radius:12px;
+ margin-bottom:15px;
+}
+
+.message{
+ padding:12px;
+ margin:10px 0;
+ border-radius:12px;
+ line-height:1.9;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+}
+
+.user{background:#39366d}
+.ai{background:#20334a}
+
+.preview{
+ min-height:200px;
+ border:1px dashed #56627c;
+ border-radius:12px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ margin-top:15px;
+ padding:12px;
+ color:#aab5cc;
+ text-align:center;
+ overflow:hidden;
+}
+
+.preview img,.preview video{
+ max-width:100%;
+ max-height:400px;
+ border-radius:10px;
+}
+
+small{
+ color:#aab5cc;
+ line-height:2;
+}
+
+.header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:10px;
+}
+
+.status{
+ color:#72d9b7;
+ font-size:12px;
+}
+
+@media(max-width:700px){
+ .app{display:block}
+ aside{width:100%;padding:12px}
+ .logo{margin-bottom:12px}
+ nav{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+ }
+ nav button{margin:0}
+ main{padding:15px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside>
+
+ <div class="logo">✦ HAJI AI</div>
+
+ <nav>
+  <button class="active"
+  onclick="showPage('chat',this)">
+  💬 چت هوشمند
+  </button>
+
+  <button onclick="showPage('image',this)">
+  🖼 ساخت تصویر
+  </button>
+
+  <button onclick="showPage('video',this)">
+  🎬 ساخت ویدیو
+  </button>
+
+  <button onclick="showPage('settings',this)">
+  ⚙ تنظیمات API
+  </button>
+ </nav>
+
+</aside>
+
+<main>
+
+<div class="header">
+ <h1 id="pageTitle">HAJI AI</h1>
+ <div class="status" id="connectionStatus">
+  ✦ HAJI AI آماده است
+ </div>
+</div>
+
+<!-- CHAT -->
+<section id="chat" class="section active">
+
+ <h1>چت با هوش مصنوعی</h1>
+
+ <div class="card">
+
+  <select id="chatProvider">
+   <option value="openai">OpenAI</option>
+   <option value="gemini">Google Gemini</option>
+   <option value="anthropic">Claude</option>
+  </select>
+
+  <input
+  id="chatModel"
+  placeholder="نام مدل (اختیاری)">
+
+  <div class="chatbox" id="chatbox">
+
+   <div class="message ai">
+    سلام! 👋
+
+    به HAJI AI خوش آمدی.
+
+    چه کاری می‌توانم برایت انجام بدهم؟
+   </div>
+
+  </div>
+
+  <textarea
+  id="chatInput"
+  placeholder="پیامت را بنویس..."></textarea>
+
+  <button
+  class="btn"
+  id="sendButton"
+  onclick="sendMessage()">
+  ارسال پیام ↗
+  </button>
+
+ </div>
+
+</section>
+
+<!-- IMAGE -->
+<section id="image" class="section">
+
+ <h1>ساخت تصویر با هوش مصنوعی</h1>
+
+ <div class="card">
+
+  <select id="imageProvider">
+   <option value="openai">OpenAI</option>
+  </select>
+
+  <select id="imageSize">
+   <option value="1024x1024">مربع 1:1</option>
+   <option value="1536x1024">افقی</option>
+   <option value="1024x1536">عمودی</option>
+  </select>
+
+  <textarea
+  id="imagePrompt"
+  placeholder="توضیح تصویر موردنظرت را بنویس..."></textarea>
+
+  <button
+  class="btn"
+  id="imageButton"
+  onclick="generateImage()">
+  ساخت تصویر 🎨
+  </button>
+
+  <div class="preview" id="imagePreview">
+   تصویر اینجا نمایش داده می‌شود
+  </div>
+
+ </div>
+
+</section>
+
+<!-- VIDEO -->
+<section id="video" class="section">
+
+ <h1>ساخت ویدیو با هوش مصنوعی</h1>
+
+ <div class="card">
+
+  <select id="videoProvider">
+   <option value="runway">Runway</option>
+  </select>
+
+  <select id="videoDuration">
+   <option value="5">۵ ثانیه</option>
+   <option value="10">۱۰ ثانیه</option>
+   <option value="15">۱۵ ثانیه</option>
+  </select>
+
+  <textarea
+  id="videoPrompt"
+  placeholder="توضیح ویدیوی موردنظرت را بنویس..."></textarea>
+
+  <button
+  class="btn"
+  id="videoButton"
+  onclick="generateVideo()">
+  ساخت ویدیو 🎬
+  </button>
+
+  <div class="preview" id="videoPreview">
+   ویدیو اینجا نمایش داده می‌شود
+  </div>
+
+ </div>
+
+</section>
+
+<!-- SETTINGS -->
+<section id="settings" class="section">
+
+ <h1>تنظیمات HAJI AI</h1>
+
+ <div class="card">
+
+  <h3>اتصال به سرور هوش مصنوعی</h3>
+
+  <input
+  id="apiUrl"
+  placeholder="آدرس سرور آنلاین">
+
+  <button
+  class="btn"
+  onclick="saveSettings()">
+  ذخیره تنظیمات
+  </button>
+
+  <button
+  class="btn"
+  style="margin-right:5px"
+  onclick="testConnection()">
+  آزمایش اتصال
+  </button>
+
+  <p id="settingsMessage">
+   <small>
+    آدرس بک‌اند را اینجا وارد کن.
+    کلیدهای API باید در سرور نگهداری شوند.
+   </small>
+  </p>
+
+ </div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+
+let API_URL =
+localStorage.getItem("HAJI_API_URL") || "";
+
+document.getElementById("apiUrl").value=API_URL;
+
+function showPage(id,button){
+
+ document.querySelectorAll(".section")
+ .forEach(x=>x.classList.remove("active"));
+
+ document.querySelectorAll("nav button")
+ .forEach(x=>x.classList.remove("active"));
+
+ document.getElementById(id).classList.add("active");
+
+ button.classList.add("active");
+
+ const titles={
+  chat:"چت هوشمند",
+  image:"ساخت تصویر",
+  video:"ساخت ویدیو",
+  settings:"تنظیمات HAJI AI"
+ };
+
+ document.getElementById("pageTitle").textContent=
+ titles[id];
+
+}
+
+function saveSettings(){
+
+ API_URL=document.getElementById("apiUrl")
+ .value.trim().replace(/\/+$/,"");
+
+ localStorage.setItem("HAJI_API_URL",API_URL);
+
+ document.getElementById("settingsMessage")
+ .textContent="تنظیمات ذخیره شد.";
+
+}
+
+async function testConnection(){
+
+ const message=document.getElementById("settingsMessage");
+
+ try{
+
+  if(!API_URL) throw new Error("آدرس سرور وارد نشده است.");
+
+  const response=await fetch(API_URL+"/api/health");
+
+  const data=await response.json();
+
+  if(!response.ok || !data.ok)
+   throw new Error("سرور پاسخ معتبر نداد.");
+
+  message.textContent="اتصال موفق بود! HAJI AI آنلاین است.";
+  document.getElementById("connectionStatus")
+  .textContent="● متصل به سرور";
+
+ }catch(error){
+
+  message.textContent="خطا: "+error.message;
+
+ }
+
+}
+
+async function apiRequest(path,data){
+
+ if(!API_URL)
+  throw new Error("ابتدا آدرس سرور را در تنظیمات وارد کن.");
+
+ const response=await fetch(API_URL+path,{
+
+  method:"POST",
+
+  headers:{
+   "Content-Type":"application/json"
+  },
+
+  body:JSON.stringify(data)
+
+ });
+
+ const result=await response.json();
+
+ if(!response.ok)
+  throw new Error(result.error||"خطای سرور");
+
+ return result;
+
+}
+
+function addMessage(text,type){
+
+ const box=document.getElementById("chatbox");
+
+ const div=document.createElement("div");
+
+ div.className="message "+type;
+
+ div.textContent=text;
+
+ box.appendChild(div);
+
+ box.scrollTop=box.scrollHeight;
+
+ return div;
+
+}
+
+// CHAT
+async function sendMessage(){
+
+ const input=document.getElementById("chatInput");
+
+ const message=input.value.trim();
+
+ if(!message)return;
+
+ input.value="";
+
+ addMessage(message,"user");
+
+ const answer=addMessage(
+  "در حال دریافت پاسخ...",
+  "ai"
+ );
+
+ document.getElementById("sendButton").disabled=true;
+
+ try{
+
+  const result=await apiRequest("/api/chat",{
+
+   provider:document.getElementById("chatProvider").value,
+
+   model:document.getElementById("chatModel").value,
+
+   message:message
+
+  });
+
+  answer.textContent=
+  result.reply||result.message||"پاسخی دریافت نشد.";
+
+ }catch(error){
+
+  answer.textContent="خطا: "+error.message;
+
+ }
+
+ document.getElementById("sendButton").disabled=false;
+
+}
+
+// IMAGE
+async function generateImage(){
+
+ const prompt=document.getElementById("imagePrompt")
+ .value.trim();
+
+ if(!prompt)return alert("توضیحات تصویر را وارد کن.");
+
+ const preview=document.getElementById("imagePreview");
+
+ const button=document.getElementById("imageButton");
+
+ preview.textContent="در حال ساخت تصویر...";
+
+ button.disabled=true;
+
+ try{
+
+  const result=await apiRequest("/api/images",{
+
+   provider:document.getElementById("imageProvider").value,
+
+   prompt:prompt,
+
+   size:document.getElementById("imageSize").value
+
+  });
+
+  preview.innerHTML="";
+
+  const img=document.createElement("img");
+
+  if(result.image_url){
+
+   img.src=result.image_url;
+
+  }else if(result.image_base64){
+
+   img.src="data:image/png;base64,"+result.image_base64;
+
+  }else{
+
+   throw new Error("تصویر در پاسخ سرور وجود ندارد.");
+
+  }
+
+  img.alt="تصویر ساخته شده توسط HAJI AI";
+
+  preview.appendChild(img);
+
+ }catch(error){
+
+  preview.textContent="خطا: "+error.message;
+
+ }
+
+ button.disabled=false;
+
+}
+
+// VIDEO
+async function generateVideo(){
+
+ const prompt=document.getElementById("videoPrompt")
+ .value.trim();
+
+ if(!prompt)return alert("توضیحات ویدیو را وارد کن.");
+
+ const preview=document.getElementById("videoPreview");
+
+ const button=document.getElementById("videoButton");
+
+ preview.textContent="در حال ارسال درخواست ویدیو...";
+
+ button.disabled=true;
+
+ try{
+
+  const result=await apiRequest("/api/videos",{
+
+   provider:document.getElementById("videoProvider").value,
+
+   prompt:prompt,
+
+   duration:Number(
+    document.getElementById("videoDuration").value
+   )
+
+  });
+
+  preview.innerHTML="";
+
+  if(result.video_url){
+
+   const video=document.createElement("video");
+
+   video.src=result.video_url;
+
+   video.controls=true;
+
+   video.playsInline=true;
+
+   preview.appendChild(video);
+
+  }else{
+
+   preview.textContent=
+   "درخواست ثبت شد، اما هنوز آدرس ویدیو دریافت نشده است. "+
+   (result.job_id?"شناسه: "+result.job_id:"");
+
+  }
+
+ }catch(error){
+
+  preview.textContent="خطا: "+error.message;
+
+ }
+
+ button.disabled=false;
+
+}
+
+</script>
+
+</body>
+</html>
+
+	
